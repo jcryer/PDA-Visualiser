@@ -7,7 +7,7 @@ const useStyles = createUseStyles({
   root: {
     position: 'relative',
     background: '#fff',
-    border: 'solid 1px black',
+    border: 'solid 2px black',
     height: 50,
     width: 50,
     borderRadius: '50%',
@@ -17,9 +17,9 @@ const useStyles = createUseStyles({
     left: 2,
     position: 'relative',
     background: '#fff',
-    border: 'solid 1px black',
-    height: 44,
-    width: 44,
+    border: 'solid 2px black',
+    height: 42,
+    width: 42,
     borderRadius: '50%',
     zIndex: 1
 
@@ -30,18 +30,28 @@ const useStyles = createUseStyles({
   handle: {
     borderRadius: 0,
     zIndex: 1,
-}
+  },
+  selected: {
+    borderColor: 'red'
+  }
 }); 
 
 function MainNode({ data }) {
 
   const classes = useStyles();
+
+  const mainStyle = clsx(classes.root, {
+    [classes.selected] : data.selected
+})
+const acceptingStyle = clsx(classes.accepting, {
+  [classes.selected] : data.selected
+})
     return (
-      <div className={classes.root}>
+      <div className={mainStyle}>
         <MainHandle
         />
         <div style={{zIndex: 2, position: "absolute", top: 14, textAlign: "center", width: "100%", fontFamily: 'Roboto Mono'}}>{data.label}</div>
-        {data.accepting ? <div className={classes.accepting} /> : null}
+        {data.accepting ? <div className={acceptingStyle} /> : null}
       </div>
     );
   };

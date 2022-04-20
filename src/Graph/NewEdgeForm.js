@@ -38,11 +38,12 @@ export default function FormDialog({ open, setOpen, addTransition, params }) {
             autoFocus
             margin="dense"
             id="name"
-            label="Required Input Symbol(s)"
+            label="Required Input Symbol"
             type="text"
             fullWidth
             variant="standard"
             value={input}
+            inputProps={{ maxLength: 1 }}
             onChange={(e) => setInput(e.target.value)}
           />
          <DialogContentText>
@@ -52,11 +53,12 @@ export default function FormDialog({ open, setOpen, addTransition, params }) {
             autoFocus
             margin="dense"
             id="name"
-            label="Required Stack Symbol(s)"
+            label="Required Stack Symbol"
             type="text"
             fullWidth
             variant="standard"
             value={inStack}
+            inputProps={{ maxLength: 1 }}
             onChange={(e) => setInStack(e.target.value)}
           />
          <DialogContentText>

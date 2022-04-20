@@ -4,8 +4,6 @@ import { useSpring, animated, a } from 'react-spring'
 import React, {useState, useEffect} from 'react';
 import Graph from "./Graph";
 
-//import NodeAsHandleFlow from "./Graph/Run";
-
 function useForceUpdate(){
   const [value, setValue] = useState(0); // integer state
   return () => setValue(value => value + 1); // update the state to force render
@@ -47,6 +45,7 @@ function App() {
       setCurrentId(s => s + 1); 
       forceUpdate();
   }
+
 
   const addTransition = (fromState, toState, input, stack, outStack) => {
     setAutomata(a => 

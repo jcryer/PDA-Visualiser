@@ -1,17 +1,32 @@
-import { width } from '@mui/system';
-import React from 'react';
-import { getSmoothStepPath, getMarkerEnd, getEdgeCenter } from 'react-flow-renderer';
+import React, {useRef, useState} from 'react';
+import { getEdgeCenter } from 'react-flow-renderer';
+import { createUseStyles } from "react-jss";
+
+const useStyles = createUseStyles({
+
+  closeButton: {
+    background: "#eee",
+    border: "1px solid #fff",
+    borderRadius: "50%",
+    cursor: "pointer",
+    fontSize: "5px",
+    height: "14px",
+    lineHeight: 1,
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "14px",
+    marginLeft: 2,
+    marginTop: 4,
+    "&:hover": {
+       boxShadow: "0 0 3px 1px rgb(0 0 0 / 8%)"
+    }
+  }
+}); 
 
 function calcOffset(sX, sY, tX, tY, data) {
   const index = data.num;
 
-  console.log(data);
-/*
-  const sourceX = data.source < data.target ? sX : tX;
-  const sourceY = data.source < data.target ? sY : tY;
-  const targetX = data.source < data.target ? tX : sX;
-  const targetY = data.source < data.target ? tY : sY;
-*/
   const sourceX = sX;
   const sourceY = sY;
   const targetX = tX;
@@ -29,14 +44,12 @@ function calcOffset(sX, sY, tX, tY, data) {
   
   const m = 0.35 * (Math.floor((index + 1) / 2)) * (index % 2 == 0 ? 1 : -1);
 
-  //const m = 0.3 * (index )
-  //const m = -0.25 * index;
-
   return [centre[0] - (m * diffY), centre[1] + (m * diffX), centre[0] - ((m * diffY) / 2), centre[1] + ((m * diffX) / 2)];
 }
 
 export default function MainEdge({
   id,
+  key,
   sourceX,
   sourceY,
   targetX,
@@ -48,20 +61,32 @@ export default function MainEdge({
   arrowHeadType,
   markerEndId,
 }) {
-  const edgePath = getSmoothStepPath({ sourceX, sourceY: sourceY + 15, sourcePosition, targetX, targetY: targetY + 15, targetPosition });
-  const markerEnd = getMarkerEnd(arrowHeadType, markerEndId);
-
-  const [edgeCentreX, edgeCentreY] = getEdgeCenter({
-    sourceX,
-    sourceY: sourceY + 15,
-    targetX,
-    targetY: targetY + 15
-  });
-
-  const onEdgeClick = (evt, id) => {
+  const onEdgeClick = (evt, i) => {
     evt.stopPropagation();
-    alert(`remove ${id}`);
+    data.delete(id, i);
+    //alert(`remove ${i}`);
   };
+
+  const [lineRef, setLineRef] = useState(null);
+
+
+  function ArrowHead({isSelf}) {
+    if (!lineRef) return <></>;
+
+    const length = lineRef.getTotalLength();
+    var offset = isSelf ? 49 : 40;
+    var offset2 = isSelf ? 0 : 25;
+    const arrowPoint1 = lineRef.getPointAtLength(length - offset);
+    const arrowPoint2 = lineRef.getPointAtLength(length - offset2);
+    return <>
+      <defs>
+        <marker id="arrowhead" markerWidth="15" markerHeight="15" refX="0" refY="7.5" orient="auto">
+          <polygon points="0 0, 15 7.5, 0 15" />
+        </marker>
+      </defs>
+      <line x1={arrowPoint1.x + (isSelf ? 2 : 0)} y1={arrowPoint1.y} x2={arrowPoint2.x + (isSelf ? 2 : 0)} y2={arrowPoint2.y} stroke="#fff" markerStart="url(#arrowhead)" />
+    </>;
+  }
 
   let pathNew = `M`;
   const index = data.num;
@@ -71,16 +96,15 @@ export default function MainEdge({
 
   var numLines = data.transitions.length;
 
+  let isSelf = false;
   if (sourceX === targetX && sourceY === targetY) {
-    pathNew = `M ${sourceX} ${sourceY + 15} c ${((index+1) * -30) - 20} ${((index+1) * -30) - 20}, ${((index+1) * 30) + 20} ${((index+1) * -30) - 20}, 0 0`;
+    isSelf = true;
+    pathNew = `M ${sourceX} ${sourceY + 25} c ${((index+1) * -25) - 20} ${((index+1) * -75) - 20}, ${((index+1) * 25) + 20} ${((index+1) * -75) - 20}, 0 0`;
 
-    midX = sourceX;
-    midY = sourceY - 20 - (10 * numLines);
+    midX = sourceX + 5;
+    midY = sourceY - 45 - (10 * numLines);
   }
   else {
-    const foreignObjectSize = 40;
-
-
     
     const pull = calcOffset(
       sourceX,
@@ -93,33 +117,33 @@ export default function MainEdge({
     pathNew = `M ${sourceX} ${sourceY + 15} Q ${pull[0]} ${pull[1]} ${targetX} ${targetY + 15}`;
   }
 
+  const maxWidth = Math.max(...(data.transitions.map(x => `${x.input}, ${x.stack}→${x.outStack}}`.length))) * 7;
+
+  const classes = useStyles();
+
   return (
     <>
-      <path id={id} /*style={style}*/ style={{stroke: data.selected ? "red" : "black", strokeWidth: "3"}} className="react-flow__edge-path" d={pathNew}  markerEnd={"url(#head)"} />
-      <foreignObject
-        width={30}
-        height={30}
+    <ArrowHead isSelf={isSelf}/>
+    <path ref={newRef => setLineRef(newRef)} id={id} style={{stroke: data.selected ? "red" : "black", strokeWidth: "3"}} className="react-flow__edge-path" d={pathNew} />
+    
+    <rect x={midX - 25} y={midY - ((13 * numLines) / 2)} width={maxWidth} height={(13 * numLines)} style={{fill: "#fff", zIndex: 1}}></rect>
 
-      >
-          <button
-            className="edgebutton"
-            onClick={(event) => onEdgeClick(event, id)}
+    {data.transitions.map((x, i) => {
+      const topLeftX = midX - 25;
+      const topLeftY = midY - ((13 * numLines) / 2) + (8 + (i * 13));
+      return (<>
+        <text key={`text-${i}`} x={topLeftX} y={topLeftY} style={{ fontFamily: 'Roboto Mono', fontSize: '12px', fill: i === data.selectedTran ? "red" : "#000", zIndex: 10 }}>{x.input}, {x.stack}→{x.outStack}</text>
+        <foreignObject key={`fo-${i}`} xmlns="http://www.w3.org/2000/svg" x={topLeftX + maxWidth} y={topLeftY - 13} width="20" height="20">
+          <button 
+            key={`but-${i}`}
+            className={classes.closeButton}
+            onClick={(event) => onEdgeClick(event, i)}
           >
             x
           </button>
-  </foreignObject>
-       {/* <text>
-      <textPath href={`#${id}`} style={{ fontSize: '12px' }} startOffset="50%" textAnchor="middle">
-          {data.text}
-        </textPath>
-      </text>*/}
-      <rect x={midX - 25} y={midY - ((10 * numLines) / 2)} width={Math.max(...(data.transitions.map(x => `${x.input}, ${x.stack}→${x.outStack}}`.length))) * 7} height={(10 * numLines)} style={{fill: "#fff", zIndex: 1}}></rect>
-
-      {data.transitions.map((x, i) => <text x={midX - 25} y={midY - ((10 * numLines) / 2)} dy={8 + (i * 10)} dx={2} style={{ fontFamily: 'Roboto Mono', fontSize: '12px', fill: "#000", zIndex: 10 }}>{x.input}, {x.stack}→{x.outStack}</text>)}
-      {/*<text x={edgeCentreX - 25} y={edgeCentreY - ((10 * numLines) / 2)} dy={8} dx={2} style={{ fontSize: '12px', fill: "#000", zIndex: 10 }}>a, a→b</text>
-      <text x={edgeCentreX - 25} y={edgeCentreY - ((10 * numLines) / 2)} dy={8+10} dx={2} style={{ fontSize: '12px', fill: "#000", zIndex: 10 }}>b, a→c</text>
-      <text x={edgeCentreX - 25} y={edgeCentreY - ((10 * numLines) / 2)} dy={8+20} dx={2} style={{ fontSize: '12px', fill: "#000", zIndex: 10 }}>b, a→c</text>
-    */}
-    </>
+        </foreignObject>
+      </>);
+    })}
+        </>
   );
 }

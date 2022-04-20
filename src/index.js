@@ -1,8 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import App from './App';
+import Graph from './Graph';
 
 ReactDOM.render(
-    <App />,
+    <Graph />,
   document.getElementById('root')
 );

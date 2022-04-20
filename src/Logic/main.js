@@ -115,28 +115,12 @@ export class Transition {
     }
 
     isValid(word, stack) {
-        if (word.length < this.input.length) return false;
-        if (stack.length < this.requiredStack.length) return false;
 
-        for (var i = 0; i < this.input.length; i++) {
-            if (word[i] !== this.input[i]) return false;
-        }
+        if (word === undefined) word = "";
+        if (stack === undefined) stack = "";
 
-        for (var i = 0; i < this.requiredStack.length; i++) {
-            if (stack[i] !== this.requiredStack[i]) return false;
-        }
-
-        
-        // if (word[0] !== this.input[0]) {
-        //     return false;
-        // }
-
-        //if (this.requiredStack.length === 0) return true;
-        
-        // if (stack[0] !== this.requiredStack[0]) {
-        //     return false;
-        // }
-
+        if (word !== this.input && this.input !== "") return false;
+        if (stack !== this.requiredStack && this.requiredStack !== "") return false;
         return true;
     }
 }
@@ -151,10 +135,11 @@ export class Instance {
     setInputWord(i) {
         this.stack = [];
         this.inputWord = i;
+        this.inputWord.push("$");
         this.currentState = this.automata.initialId;
         return this;
     }
-
+    
     stepAutomata() {
         let state;
 
@@ -162,43 +147,55 @@ export class Instance {
             return true;
         }
 
-        console.log("Current State: " + this.currentState);
-        console.log("Current Stack: [" + this.stack.join(", ") + "]");
         state = this.automata.states.find(x => x.id === this.currentState);
-        //console.log(state);
 
-        let tran = state.transitions.find(x => x.isValid(this.inputWord,this.stack));
+        let tran = state.transitions.find(x => x.isValid(this.inputWord[0], this.stack[0]));
         if (tran === undefined) return true;
-        //console.log(tran);
 
-        
-        this.inputWord.splice(0, tran.input.length);
-        this.stack.splice(0, tran.requiredStack.length);
+        if (tran.input !== undefined && tran.input !== "") this.inputWord.splice(0, 1);
+        if (tran.requiredStack !== undefined && tran.requiredStack !== "") this.stack.splice(0, 1);
+        if (tran.replacedStack !== undefined && tran.replacedStack !== "") this.stack.unshift(tran.replacedStack.split(""));
 
-
-        this.stack.unshift(tran.replacedStack);
         this.stack = this.stack.flat();
         
         this.currentState = tran.nextId;
         return false;
     }
 
+    doNextStep(type) { // 0: transition, 1: state
+        if (this.inputWord.length === 0)  return { end: true, tran: null, state: null }; // return end
+        
+        let state = this.automata.states.find(x => x.id === this.currentState);
+        let tran = state.transitions.find(x => x.isValid(this.inputWord[0], this.stack[0]));
+        if (tran === undefined) return { end: true, tran: null, state: null }; // return end
+        if (type === 0)  return { end: false, tran: tran, state: null }; // return transition id??
+
+        if (tran.input !== undefined && tran.input !== "") this.inputWord.splice(0, 1);
+        if (tran.requiredStack !== undefined && tran.requiredStack !== "") this.stack.splice(0, 1);
+        if (tran.replacedStack !== undefined && tran.replacedStack !== "") this.stack.unshift(tran.replacedStack.split(""));
+
+        this.stack = this.stack.flat();
+        
+        this.currentState = tran.nextId;
+        return { end: false, tran: null, state: tran.nextId }; // return state id
+    }
+
+    checkAccepted() {
+        if ((this.inputWord.length === 0 || (this.inputWord.length === 1 && this.inputWord[0] === "$")) && this.stack.length === 0 && this.automata.states.find(x => x.id === this.currentState).accepting) {
+            return true;
+        }
+        return false;
+    }
+
     walkAutomata() {
         this.currentState = this.automata.initialId;
-        console.log("==========");
-        //let state;
         while (true) {
             let out = this.stepAutomata();
             if (out) break;
         }
-        console.log("Current State: " + this.currentState);
-        console.log("Current Stack: [" + this.stack.join(", ") + "]");
-
-        if (this.inputWord.length === 0 && this.automata.states.find(x => x.id === this.currentState).accepting) {
-            console.log("Pass!");
+        if ((this.inputWord.length === 0 || (this.inputWord.length === 1 && this.inputWord[0] === "$")) && this.stack.length === 0 && this.automata.states.find(x => x.id === this.currentState).accepting) {
             return true;
         }
-        console.log("Fail");
         return false;
     }
 }
