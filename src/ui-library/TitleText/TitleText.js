@@ -6,12 +6,14 @@ const useStyles = createUseStyles({
     color: color,
     fontStyle: "normal",
     fontWeight: 500,
-    fontSize: "18px",
-    lineHeight: "21px",
+    fontSize: "28px",
+    lineHeight: "40px",
     MozUserSelect: "none",
     WebkitUserSelect: "none",
     msUserSelect: "none",
     userSelect: "none",
+    display: "inline-block",
+    fontFamily: "Roboto Mono",
   }),
 });
 

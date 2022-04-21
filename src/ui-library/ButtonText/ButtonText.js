@@ -7,7 +7,7 @@ const useStyles = createUseStyles({
     color: color,
     fontStyle: "normal",
     fontWeight: 500,
-    fontSize: "18px",
+    fontSize: "22px",
     lineHeight: "21px",
     MozUserSelect: "none",
     WebkitUserSelect: "none",

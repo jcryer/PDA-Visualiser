@@ -24,6 +24,7 @@ export default function FormDialog({ open, setOpen, addTransition, params }) {
     setInStack("");
     setOutStack("");
   }
+  const checkWord = (chars) => chars.split("").filter(x => x !== "ϵ").join("");
 
   return (
     <div>
@@ -32,7 +33,7 @@ export default function FormDialog({ open, setOpen, addTransition, params }) {
         <DialogTitle>New Transition</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Enter one or more symbols that must be at the top of the remaining input
+            Enter zero or one symbol that must be at the top of the remaining input
           </DialogContentText>
           <TextField
             autoFocus
@@ -44,10 +45,10 @@ export default function FormDialog({ open, setOpen, addTransition, params }) {
             variant="standard"
             value={input}
             inputProps={{ maxLength: 1 }}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => setInput(checkWord(e.target.value))}
           />
          <DialogContentText>
-            Enter zero or more symbols that must be at the top of the stack
+            Enter zero or one symbol that must be at the top of the stack
           </DialogContentText>
           <TextField
             autoFocus
@@ -59,7 +60,7 @@ export default function FormDialog({ open, setOpen, addTransition, params }) {
             variant="standard"
             value={inStack}
             inputProps={{ maxLength: 1 }}
-            onChange={(e) => setInStack(e.target.value)}
+            onChange={(e) => setInStack(checkWord(e.target.value))}
           />
          <DialogContentText>
             Enter zero or more symbols that will replace any popped symbols from the stack
@@ -73,7 +74,7 @@ export default function FormDialog({ open, setOpen, addTransition, params }) {
             fullWidth
             variant="standard"
             value={outStack}
-            onChange={(e) => setOutStack(e.target.value)}
+            onChange={(e) => setOutStack(checkWord(e.target.value))}
           />
         </DialogContent>
         <DialogActions>

@@ -1,5 +1,5 @@
 export { default as BodyText } from "./BodyText/BodyText";
-export { default as Button } from "./Button/Button";
+export { default as NewButton } from "./Button/Button";
 export { default as ButtonText } from "./ButtonText/ButtonText";
 export { default as Dropdown } from "./Dropdown/Dropdown";
 export { default as FlexChild } from "./FlexChild/FlexChild";

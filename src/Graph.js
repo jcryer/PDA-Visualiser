@@ -1,32 +1,55 @@
 import { State, Automata, Transition, Instance } from "./Logic/main";
+import React, { useState, useEffect } from "react";
+import ReactFlow, {
+  ConnectionLineType,
+  Background,
+  MiniMap,
+  Controls,
+  useZoomPanHelper
+} from "react-flow-renderer";
+import { MainNode, MainEdge, NewEdgeForm, Stack, HelpModal } from "./Graph/";
+import { NewButton, TextInput, TitleText } from "./ui-library";
+import { saveAs } from "file-saver";
+import ReactFileReader from "react-file-reader";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import Button from "@mui/material/Button";
 
-import React, {useState, useEffect} from 'react';
-import ReactFlow, {addEdge, ConnectionLineType} from 'react-flow-renderer';
-import { MainNode, MainEdge, NewEdgeForm, Stack } from "./Graph/";
-import { Button, Label, TextInput } from "./ui-library";
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import Select from '@mui/material/Select';
+
+import anbn from './examples/anbn.json';
+import length from './examples/length.json';
+import wcwr from './examples/wcwr.json';
+
+const loadAnbn = () => JSON.parse(JSON.stringify(anbn));
+const loadLength = () => JSON.parse(JSON.stringify(length));
+const loadWcwr = () => JSON.parse(JSON.stringify(wcwr));
 
 const nodeTypes = {
   mainNode: MainNode,
 };
 
 const edgeTypes = {
-  mainEdge: MainEdge
-}
+  mainEdge: MainEdge,
+};
 
 function getNodeIndex(elements) {
   if (elements.length === 0) return 0;
-  const map = elements.map(x => parseInt(x.id));
+  const map = elements.map((x) => parseInt(x.id));
   return Math.max.apply(null, map) + 1;
 }
 
 function Graph() {
+  const { fitView } = useZoomPanHelper();
 
   const [elements, setElements] = useState([]);
 
   const [automata, setAutomata] = useState(new Automata({}));
 
   const [instance, setInstance] = useState(new Instance(new Automata({})));
-  
+
   const [inputWord, setInputWord] = useState("");
 
   const [inRun, setInRun] = useState(0);
@@ -34,183 +57,371 @@ function Graph() {
 
   const [success, setSuccess] = useState("");
 
+  const [selectedNode, setSelectedNode] = useState(null);
+
+  const [example, setExample] = useState("");
+
+  const handleExample = async (event) => {
+    setExample(event.target.value);
+    switch (event.target.value) {
+      case 1:
+        setElements(loadAnbn());
+        break;
+      case 2:
+        setElements(loadLength());
+        break;
+      case 3:
+        setElements(loadWcwr());
+        break;
+    }
+    await new Promise(r => setTimeout(r, 50));
+    setElements(els => [...els]);
+    fitView({ padding: 0.8 });
+  };
+
+
+
   useEffect(() => {
     buildAutomata();
   }, [elements]);
 
-  
   useEffect(() => {
     setInstance(new Instance(automata));
   }, [automata]);
 
-  
-  const onNodeDoubleClick = (event, node) => setElements((els) => {
-    return els.map((el) => 
-    el.id === node.id ? {...el, data: {...el.data, accepting: !el.data.accepting}}
-    : el)
-  });
+  const onNodeDoubleClick = (event, node) =>
+    setElements((els) => {
+      return els.map((el) =>
+        el.id === node.id
+          ? {
+              ...el,
+              data: {
+                ...el.data,
+                accepting: !el.data.accepting,
+              },
+            }
+          : el
+      );
+    });
 
   const isUniqueTransition = (transitions, input, stack, outStack) => {
-
     for (var i = 0; i < transitions.length; i++) {
-      if (transitions[i].input == input && transitions[i].stack == stack && transitions[i].outStack == outStack) return false;
+      if (
+        transitions[i].input == input &&
+        transitions[i].stack == stack &&
+        transitions[i].outStack == outStack
+      )
+        return false;
     }
 
     return true;
-  }
+  };
 
-  const deleteTransition = (id, iter) => setElements((els) => {
-    const el = els.find(x => x.id === id);
-    if (el.data.transitions.length === 1) return els.filter(x => x.id !== id);
-      
-    return [
-      ...els.filter(x => x.id !== id),
-      {
-        ...el,
-        data: {
-          ...el.data,
-          transitions: el.data.transitions.filter((x, i) => i !== iter)
-        }
-      }
-    ]
-  });
+  const deleteTransition = (id, iter) =>
+    setElements((els) => {
+      const el = els.find((x) => x.id === id);
+      if (el.data.transitions.length === 1)
+        return els.filter((x) => x.id !== id);
 
-  const addTransition = (params, input, stack, outStack) => setElements((els) => {
-    const el = els.find(x => x.id == `${params.source}-${params.target}`);
-
-    const startNum = els.some(x => x.id == `${params.target}-${params.source}`) ? 1 : 0;
-    if (el == undefined) {
       return [
-        ...els, 
+        ...els.filter((x) => x.id !== id),
         {
-          id: `${params.source}-${params.target}`,
-          source: params.source,
-          target: params.target,
-          type: 'mainEdge',
-          data: { text: `custom edge`, source: params.source, target: params.target, transitions: [{input, stack, outStack}], num: startNum, selected: false, selectedTran: -1, delete: deleteTransition },
-          arrowHeadType: 'arrowclosed',
-        }
+          ...el,
+          data: {
+            ...el.data,
+            transitions: el.data.transitions.filter((x, i) => i !== iter),
+          },
+        },
       ];
-    }
+    });
 
-    if (!isUniqueTransition(els.find(x => x === el).data.transitions, input, stack, outStack)) {
-      return els;
-    }
+  const addTransition = (params, input, stack, outStack) =>
+    setElements((els) => {
+      const el = els.find((x) => x.id == `${params.source}-${params.target}`);
 
-    return [
-      ...els.filter(x => x !== el), 
-      {
-        ...el, 
-        data: {
-          ...el.data,
-          transitions: [...el.data.transitions, {input, stack, outStack}],
-        }
+      const startNum = els.some(
+        (x) => x.id == `${params.target}-${params.source}`
+      )
+        ? 1
+        : 0;
+      if (el == undefined) {
+        return [
+          ...els,
+          {
+            id: `${params.source}-${params.target}`,
+            source: params.source,
+            target: params.target,
+            type: "mainEdge",
+            data: {
+              text: `custom edge`,
+              source: params.source,
+              target: params.target,
+              transitions: [
+                {
+                  input,
+                  stack,
+                  outStack,
+                },
+              ],
+              num: startNum,
+              selected: false,
+              selectedTran: -1,
+              delete: deleteTransition,
+            },
+            arrowHeadType: "arrowclosed",
+          },
+        ];
       }
-    ];
-  });
 
-  const addNode = () => 
-  {
+      if (
+        !isUniqueTransition(
+          els.find((x) => x === el).data.transitions,
+          input,
+          stack,
+          outStack
+        )
+      ) {
+        return els;
+      }
+
+      return [
+        ...els.filter((x) => x !== el),
+        {
+          ...el,
+          data: {
+            ...el.data,
+            transitions: [
+              ...el.data.transitions,
+              {
+                input,
+                stack,
+                outStack,
+              },
+            ],
+          },
+        },
+      ];
+    });
+
+  const addNode = () => {
     setElements((els) => {
       const newId = getNodeIndex(els);
       return [
         ...els,
-        { id: `${newId}`, type: 'mainNode', data: { label: `${els.filter(x => x.type === 'mainNode').length + 1}`, accepting: false, selected: false, selectedTran: -1 }, position: { x: 100, y: 50 } },
-      ]
+        {
+          id: `${newId}`,
+          type: "mainNode",
+          data: {
+            label: `${newId + 1}`,
+            accepting: false,
+            selected: false,
+            selectedTran: -1,
+            start: newId === 0 ? true : false,
+          },
+          position: {
+            x: 100,
+            y: 50,
+          },
+        },
+      ];
     });
   };
 
-  const deselectAll = () => setElements((els) => els.map(el => ({...el, data: {...el.data, selected: false, selectedTran: -1 }})));
+  const removeNode = () => {
+    setElements((els) => {
+      if (selectedNode.length === 1 && selectedNode[0].id !== "0") {
+        return els.filter((x) => x.id !== selectedNode[0].id);
+      }
+      return els;
+    });
+  };
 
-  const selectNode = (id) => setElements((els) => {
-    const mostEls = els.filter(x => x.id !== id).map(el => ({...el, data: {...el.data, selected: false, selectedTran: -1 }}));
+  const removeAllNodes = () => {
+    setElements((els) => {
+      const el = els.find((x) => x.id === "0");
+      return [
+        {
+          ...el,
+          data: {
+            ...el.data,
+            selected: false,
+            selectedTran: -1,
+            accepting: false,
+          },
+        },
+      ];
+    });
+  };
 
-    const el = els.find(x => x.id === id);
-
-    return [
-      ...mostEls, 
-      {
+  const deselectAll = () =>
+    setElements((els) =>
+      els.map((el) => ({
         ...el,
         data: {
           ...el.data,
-          selected: true
+          selected: false,
+          selectedTran: -1,
+        },
+      }))
+    );
+
+  const selectNode = (id) =>
+    setElements((els) => {
+      const mostEls = els
+        .filter((x) => x.id !== id)
+        .map((el) => ({
+          ...el,
+          data: {
+            ...el.data,
+            selected: false,
+            selectedTran: -1,
+          },
+        }));
+
+      const el = els.find((x) => x.id === id);
+
+      return [
+        ...mostEls,
+        {
+          ...el,
+          data: {
+            ...el.data,
+            selected: true,
+          },
+        },
+      ];
+    });
+
+  const selectTransition = (source, tran) =>
+    setElements((els) => {
+      const id = `${source}-${tran.nextId}`;
+      const el = els.find((x) => x.id === id);
+
+      const mostEls = els
+        .filter((x) => x.id !== id)
+        .map((el) => ({
+          ...el,
+          data: {
+            ...el.data,
+            selected: false,
+            selectedTran: -1,
+          },
+        }));
+
+      return [
+        ...mostEls,
+        {
+          ...el,
+          data: {
+            ...el.data,
+            selectedTran: el.data.transitions.findIndex(
+              (x) =>
+                x.input === tran.input &&
+                x.stack === tran.requiredStack &&
+                x.outStack === tran.replacedStack
+            ),
+            transitions: el.data.transitions.map((t) => ({
+              ...t,
+              selected: t === tran ? true : false,
+            })),
+            selected: true,
+          },
+        },
+      ];
+    });
+
+  const onConnect = (params) => {
+    setParams(params);
+    setOpen(true);
+  };
+  const onSelectionChange = (elements) => {
+    setSelectedNode(elements);
+  };
+
+  
+
+  const buildAutomata = () =>
+    setAutomata((a) => {
+      a = a.reset();
+      const nodes = elements.filter((x) => x.type === "mainNode");
+      const edges = elements.filter((x) => x.type === "mainEdge");
+
+      for (var i = 0; i < nodes.length; i++) {
+        a = a.addState(new State(nodes[i].id, nodes[i].data.accepting));
+      }
+
+      for (var i = 0; i < edges.length; i++) {
+        const edge = edges[i];
+        for (var j = 0; j < edge.data.transitions.length; j++) {
+          const trans = edge.data.transitions[j];
+          a = a.addTransition(
+            edge.data.source,
+            new Transition(
+              trans.input,
+              trans.stack,
+              edge.data.target,
+              trans.outStack
+            )
+          );
         }
       }
-    ]
-  });
+      a = a.setInitialId("0");
+      return a;
+    });
 
-  const selectTransition = (source, tran) => setElements((els) => {
-    const id = `${source}-${tran.nextId}`;
-    const el = els.find(x => x.id === id);
-
-    const mostEls = els.filter(x => x.id !== id).map(el => ({...el, data: {...el.data, selected: false, selectedTran: -1 }}));
-
-    return [
-      ...mostEls, 
-      {
-        ...el,
-        data: {
-          ...el.data,
-          selectedTran: el.data.transitions.findIndex(x => x.input === tran.input && x.stack === tran.requiredStack && x.outStack === tran.replacedStack),
-          transitions: el.data.transitions.map(t => ({...t, selected: t === tran ? true : false})),
-          selected: true
-        }
-      }
-    ]
-  });
-
-  const onConnect = (params) => {setParams(params); setOpen(true);}
-
-  const buildAutomata = () => setAutomata(a => {
-    a = a.reset();
-    const nodes = elements.filter(x => x.type === 'mainNode');
-    const edges = elements.filter(x => x.type === 'mainEdge');
-
-    for (var i = 0; i < nodes.length; i++) {
-      a = a.addState(new State(nodes[i].id, nodes[i].data.accepting));
-    }
-
-    for (var i = 0; i < edges.length; i++) {
-      const edge = edges[i];
-      for (var j = 0; j < edge.data.transitions.length; j++) {
-        const trans = edge.data.transitions[j];
-        a = a.addTransition(
-          edge.data.source, 
-          new Transition(trans.input, trans.stack, edge.data.target, trans.outStack) 
-        );
-      }
-    }
-    a = a.setInitialId("0");
-    return a;
-  });
+  const checkWord = (chars) => chars.filter(x => x !== "ϵ" && x !== "$");
 
   const walkAutomata = () => {
     setSuccess("");
-    instance.setInputWord(inputWord.split(""));
+    instance.setInputWord(checkWord(inputWord.split("")));
     const result = instance.walkAutomata();
-    if (result) setSuccess("Word accepted.");
-    else setSuccess("Word rejected.");
-  }
+    if (result) setSuccess("Accepted.");
+    else setSuccess("Rejected.");
+  };
 
   const resetStep = () => {
-    instance.setInputWord(inputWord.split(""));
+    instance.setInputWord(checkWord(inputWord.split("")));
     setSuccess("");
     setInRun(0);
     setRunType(0);
     deselectAll();
     return;
-  }
-  
+  };
+
+  const resetAll = () => {
+    instance.setInputWord(checkWord(inputWord.split("")));
+    setSuccess("");
+    setInRun(0);
+    setRunType(0);
+    setInputWord("");
+    removeAllNodes();
+    setSelectedNode(null);
+    return;
+  };
+
+  const exportCurrent = () => {
+    var blob = new Blob([JSON.stringify(elements)], {
+      type: "application/json;charset=utf-8",
+    });
+    saveAs(blob, "automata.json");
+  };
+
+  const handleFiles = (files) => {
+    setElements(JSON.parse(atob(files.base64.slice(29))));
+  };
+
+  const onLoad = (i) => {
+    addNode();
+    i.fitView();
+    return;
+  };
+
+  const onNodeDragStop = (e, n) => {
+    setElements((els) => els.map((el) => (el.id === n.id ? n : el)));
+  };
   const stepAutomata = () => {
-    if (inRun === 2) {
-      instance.setInputWord(inputWord.split(""));
-      setSuccess("");
-      setInRun(0);
-      setRunType(0);
-      return;
-    }
     if (inRun === 0) {
-      instance.setInputWord(inputWord.split(""));
+      instance.setInputWord(checkWord(inputWord.split("")));
       setSuccess("");
       setInRun(1);
       selectNode(instance.currentState);
@@ -219,13 +430,15 @@ function Graph() {
     }
 
     let run = runType;
-    setRunType(x => x === 0 ? 1 : 0);
+    setRunType((x) => (x === 0 ? 1 : 0));
     let out = instance.doNextStep(runType);
 
     if (out.end) {
-      if (instance.checkAccepted()) setSuccess("Word accepted.");
-      else setSuccess("Word rejected.");
-      setInRun(2);
+      if (instance.checkAccepted()) setSuccess("Accepted.");
+      else setSuccess("Rejected.");
+      instance.setInputWord(checkWord(inputWord.split("")));
+      setInRun(0);
+      setRunType(0);
       deselectAll();
       return;
     }
@@ -234,42 +447,213 @@ function Graph() {
       selectTransition(instance.currentState, out.tran);
       return;
     }
-    
-    selectNode(out.state);
-    
-  }
 
+    selectNode(out.state);
+  };
 
   const [open, setOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [params, setParams] = useState(null);
 
   return (
     <>
-    <NewEdgeForm open={open} setOpen={setOpen} addTransition={addTransition} params={params} />
-    <Label text="Enter Input Word:">
-      <TextInput 
-        onChange={(e) => { setInputWord(e.target.value)}} 
-        text={inputWord} width={50} 
-      />
-    </Label>
-    <Button onClick={addNode} text={"Add Node"} />
-    <Button onClick={walkAutomata} text="Run" />
-    <Button onClick={stepAutomata} text={inRun === 1 ? "Step" : inRun === 0 ? "Start Step" : "Reset"} />
-    <Button onClick={resetStep} text={"Reset Step"} />
-    {success}
-    <ReactFlow 
-    /*onConnectStart={onConnectStart}
-    onConnectEnd={onConnectEnd}*/
-    onConnect={onConnect}
-    onNodeDoubleClick={onNodeDoubleClick}
-    connectionMode={"loose"}
-    connectionLineType={ConnectionLineType.Bezier}
-    nodeTypes={nodeTypes} 
-    edgeTypes={edgeTypes}
-    elements={elements} 
-    style={{height: 500}} />
-  <Stack list={instance.stack} />
-</>
+      <div>
+        <NewEdgeForm
+          open={open}
+          setOpen={setOpen}
+          addTransition={addTransition}
+          params={params}
+        />
+        <HelpModal open={helpOpen} setOpen={setHelpOpen} />
+        <div
+          style={{
+            display: "flex",
+          }}
+        >
+          <div
+            style={{
+              flexGrow: 1,
+              width: 0,
+            }}
+          >
+            <Button
+              variant="contained"
+              endIcon={<HelpOutlineIcon />}
+              style={{
+                margin: 5,
+                padding: "10px 30px 10px 30px",
+              }}
+              onClick={(_) => setHelpOpen(true)}
+            >
+              Help
+            </Button>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              flexDirection: "column",
+              textAlign: "center",
+              marginTop: 10,
+              flexGrow: 3,
+            }}
+          >
+            <TitleText style={{fontSize: 40}}>Pushdown Automata Visualiser</TitleText>
+            <TitleText>By Joseph Cryer</TitleText>
+
+          </div>
+          <div
+            style={{
+              flexGrow: 1,
+              display: "flex",
+              justifyContent: "flex-end"
+            }}
+          >
+             <FormControl style={{margin: 10, width: 150}}>
+              <InputLabel id="demo-simple-select-label">Examples</InputLabel>
+              <Select
+                labelId="demo-simple-select-label"
+                id="demo-simple-select"
+                value={example}
+                label="Examples"
+                onChange={handleExample}
+              >
+                <MenuItem value={1}>aⁿbⁿ</MenuItem>
+                <MenuItem value={2}>|a| = |b|</MenuItem>
+                <MenuItem value={3}>wcw<sup>R</sup></MenuItem>
+              </Select>
+            </FormControl>
+          </div>
+        </div>
+        <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              marginTop: 10,
+              alignItems: "center",
+              flexDirection: "column",
+            }}
+          >
+            <TitleText style={{fontSize: 20}}> Enter Input Word: </TitleText>
+            <div
+              style={{
+                textAlign: "center",
+              }}
+            >
+              <TextInput
+                onChange={(e) => {
+                  setInputWord(e.target.value);
+                }}
+                text={inputWord}
+                width={400}
+              />
+              <TitleText> {success} </TitleText>
+            </div>
+          </div>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "center",
+            marginTop: 5
+          }}
+        >
+          <NewButton onClick={walkAutomata} text="Run" />
+        </div>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "center",
+          }}
+        >
+          <NewButton onClick={addNode} text={"Add Node"} />
+          <NewButton
+            onClick={stepAutomata}
+            text={inRun === 1 ? "Step" : "Start Step"}
+          />
+          <NewButton onClick={resetStep} text={"Restart Step"} />
+        </div>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "center",
+          }}
+        >
+          <NewButton onClick={resetAll} text={"Clear Screen"} />
+          <div
+            style={{
+              display: "inline-block",
+            }}
+          >
+            <ReactFileReader
+              fileTypes={[".json"]}
+              multipleFiles={false}
+              base64={true}
+              handleFiles={handleFiles}
+              style={{
+                display: "inline-block",
+              }}
+            >
+              <NewButton text={"Import"} />
+            </ReactFileReader>
+          </div>
+          <NewButton onClick={exportCurrent} text={"Export"} />
+        </div>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          flexGrow: 10,
+          marginLeft: 10,
+          marginTop: 10,
+        }}
+      >
+        <ReactFlow
+          onConnect={onConnect}
+          onSelectionChange={onSelectionChange}
+          selectNodesOnDrag={false}
+          onNodeDoubleClick={onNodeDoubleClick}
+          multiSelectionKeyCode={false}
+          selectionKeyCode={false}
+          onElementsRemove={(x) => removeNode()}
+          onNodeDragStop={onNodeDragStop}
+          connectionMode={"loose"}
+          onLoad={onLoad}
+          connectionLineType={ConnectionLineType.Bezier}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          elements={elements}
+          defaultZoom={1.3}
+          style={{
+            height: "100%",
+            border: "1px solid black",
+            borderRadius: "10px",
+          }}
+        >
+          <Background variant="lines" gap={60} size={2} />
+          <MiniMap
+            nodeColor={(node) => {
+              if (node.id === "0") return "green";
+              return "red";
+            }}
+            nodeStrokeWidth={2}
+            nodeBorderRadius={"50%"}
+          />
+          <Controls />
+        </ReactFlow>
+        <Stack list={instance.stack} />
+      </div>
+      <div
+        style={{
+          display: "flex",
+          flexGrow: 1,
+        }}
+      >
+        
+      </div>
+    </>
   );
 }
 

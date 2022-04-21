@@ -1,6 +1,7 @@
 import React, {useRef, useState} from 'react';
 import { getEdgeCenter } from 'react-flow-renderer';
 import { createUseStyles } from "react-jss";
+import clsx from "clsx";
 
 const useStyles = createUseStyles({
 
@@ -18,9 +19,13 @@ const useStyles = createUseStyles({
     width: "14px",
     marginLeft: 2,
     marginTop: 4,
+    marginRight: 5,
     "&:hover": {
        boxShadow: "0 0 3px 1px rgb(0 0 0 / 8%)"
     }
+  },
+  invisible: {
+    display: "none"
   }
 }); 
 
@@ -69,6 +74,7 @@ export default function MainEdge({
 
   const [lineRef, setLineRef] = useState(null);
 
+  const [buttonsVisible, setButtonsVisible] = useState(false);
 
   function ArrowHead({isSelf}) {
     if (!lineRef) return <></>;
@@ -79,12 +85,7 @@ export default function MainEdge({
     const arrowPoint1 = lineRef.getPointAtLength(length - offset);
     const arrowPoint2 = lineRef.getPointAtLength(length - offset2);
     return <>
-      <defs>
-        <marker id="arrowhead" markerWidth="15" markerHeight="15" refX="0" refY="7.5" orient="auto">
-          <polygon points="0 0, 15 7.5, 0 15" />
-        </marker>
-      </defs>
-      <line x1={arrowPoint1.x + (isSelf ? 2 : 0)} y1={arrowPoint1.y} x2={arrowPoint2.x + (isSelf ? 2 : 0)} y2={arrowPoint2.y} stroke="#fff" markerStart="url(#arrowhead)" />
+      <line x1={arrowPoint1.x + (isSelf ? 2 : 0)} y1={arrowPoint1.y} x2={arrowPoint2.x + (isSelf ? 2 : 0)} y2={arrowPoint2.y} stroke="#fff" markerStart={`url(#${data.selected ? "red" : "black"})`}/>
     </>;
   }
 
@@ -117,33 +118,42 @@ export default function MainEdge({
     pathNew = `M ${sourceX} ${sourceY + 15} Q ${pull[0]} ${pull[1]} ${targetX} ${targetY + 15}`;
   }
 
-  const maxWidth = Math.max(...(data.transitions.map(x => `${x.input}, ${x.stack}→${x.outStack}}`.length))) * 7;
+  const maxWidth = Math.max(...(data.transitions.map(x => `${x.input === "" ? "ϵ" : x.input}, ${x.stack === "" ? "ϵ" : x.stack}→${x.outStack === "" ? "ϵ" : x.outStack}`.length))) * 7;
 
   const classes = useStyles();
 
   return (
     <>
     <ArrowHead isSelf={isSelf}/>
-    <path ref={newRef => setLineRef(newRef)} id={id} style={{stroke: data.selected ? "red" : "black", strokeWidth: "3"}} className="react-flow__edge-path" d={pathNew} />
+    <path 
+ref={newRef => setLineRef(newRef)} id={id} style={{stroke: data.selected ? "red" : "black", strokeWidth: "3"}} className="react-flow__edge-path" d={pathNew} />
     
-    <rect x={midX - 25} y={midY - ((13 * numLines) / 2)} width={maxWidth} height={(13 * numLines)} style={{fill: "#fff", zIndex: 1}}></rect>
+    <rect 
+
+    x={midX - 25} y={midY - ((13 * numLines) / 2)} width={maxWidth} height={(13 * numLines)} style={{fill: "#fff"}} />
 
     {data.transitions.map((x, i) => {
       const topLeftX = midX - 25;
       const topLeftY = midY - ((13 * numLines) / 2) + (8 + (i * 13));
       return (<>
-        <text key={`text-${i}`} x={topLeftX} y={topLeftY} style={{ fontFamily: 'Roboto Mono', fontSize: '12px', fill: i === data.selectedTran ? "red" : "#000", zIndex: 10 }}>{x.input}, {x.stack}→{x.outStack}</text>
-        <foreignObject key={`fo-${i}`} xmlns="http://www.w3.org/2000/svg" x={topLeftX + maxWidth} y={topLeftY - 13} width="20" height="20">
+      
+        <text key={`text-${i}`} x={topLeftX} y={topLeftY} style={{ fontFamily: 'Roboto Mono', fontSize: '12px', fill: i === data.selectedTran ? "red" : "#000", zIndex: 10, pointerEvents: "none" }}>{x.input === "" ? "ε" : x.input}, {x.stack === "" ? "ε" : x.stack}→{x.outStack === "" ? "ε" : x.outStack}</text>
+        <foreignObject key={`fo-${i}`} xmlns="http://www.w3.org/2000/svg" x={topLeftX} y={topLeftY - 13} width={20 + maxWidth} height="20">
+          <div 
+            style={{position: "absolute", width: 20 + maxWidth, height: "32px", display: "flex", flexDirection: "row", justifyContent: "flex-end" }}
+            onMouseEnter={(e) => setButtonsVisible(true) }
+            onMouseLeave={(e) => setButtonsVisible(false) }>
           <button 
             key={`but-${i}`}
-            className={classes.closeButton}
+            className={clsx(classes.closeButton, {[classes.invisible]: !buttonsVisible})}
             onClick={(event) => onEdgeClick(event, i)}
           >
             x
           </button>
+          </div>
         </foreignObject>
       </>);
     })}
-        </>
+    </>
   );
 }

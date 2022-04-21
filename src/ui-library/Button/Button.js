@@ -2,35 +2,39 @@ import React from "react";
 import { colors } from "../defaults";
 import { createUseStyles } from "react-jss";
 import { ButtonText } from "..";
+import Button from '@mui/material/Button';
 
 const useStyles = createUseStyles({
-  root: ({ activated }) => ({
+  root: {
     borderRadius: 10,
-    padding: "5px 10px",
+    padding: "10px 10px",
     display: "inline-block",
-    cursor: activated ? "pointer" : "default",
-    backgroundColor: activated ? colors.primary.main : colors.actions.disabled,
-    color: activated ? colors.primary.contrastText : colors.text.disabled,
-  }),
+    fontFamily: 'Roboto Mono',
+    marginRight: 2,
+    marginTop: 5,
+    height: 50,
+    width: 200,
+    textAlign: "center"
+  }
 });
 
-function Button({ onClick, text, activated, style }) {
-  const classes = useStyles({ activated });
+function NewButton({ onClick, text, style }) {
+  const classes = useStyles();
   return (
-    <div
+    <Button
+    variant="contained"
       style={{ ...style }}
       className={classes.root}
-      onClick={activated ? onClick : null}
+      onClick={onClick}
     >
       <ButtonText color={""}>{text}</ButtonText>
-    </div>
+    </Button>
   );
 }
 
 Button.defaultProps = {
-  activated: true,
   text: "",
   style: {},
 };
 
-export default Button;
+export default NewButton;

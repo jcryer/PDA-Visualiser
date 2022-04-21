@@ -3,15 +3,17 @@ import { createUseStyles } from "react-jss";
 import { colors } from "../defaults";
 
 const useStyles = createUseStyles({
-  root: ({ fontSize, width }) => ({
+  root: ({ width, fontSize }) => ({
+    display: "inline-block",
     border: "none",
     borderBottom: "2px solid lightgrey",
     width: width,
-    fontFamily: "inherit",
+    fontFamily: "Roboto Mono",
     fontWeight: "normal",
     fontSize: fontSize,
     outline: "none",
     color: colors.text.primary,
+    marginRight: 10
   }),
 });
 function TextInput({ placeholder, onChange, text, width, fontSize }) {
@@ -28,8 +30,8 @@ function TextInput({ placeholder, onChange, text, width, fontSize }) {
 }
 
 TextInput.defaultProps = {
-  size: 16,
-  width: "",
+  fontSize: 20,
+  width: 500,
 };
 
 export default TextInput;

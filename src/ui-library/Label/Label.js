@@ -5,6 +5,7 @@ import TitleText from "../TitleText/TitleText";
 const useStyles = createUseStyles({
   root: {
     paddingBottom: 10,
+    fontFamily: 'Roboto Mono',
   },
 });
 function Label({ children, text }) {

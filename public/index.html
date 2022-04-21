@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="height: 100%">
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
@@ -18,17 +18,17 @@
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <title>React App</title>
   </head>
-  <body>
-
+  <body style="height: 100%; margin: 0">
+    <svg style="width:0; height: 0; position: absolute">
     <defs>
-      <marker id='head' orient="auto"
-        markerWidth='2' markerHeight='4'
-        refX='0.1' refY='2'>
-        <!-- triangle pointing right (+x) -->
-        <path d='M0,0 V4 L2,2 Z' fill="black"/>
+      <marker id="black" markerWidth="15" markerHeight="15" refX="0" refY="7.5" orient="auto">
+        <polygon points="0 0, 15 7.5, 0 15" style="fill: black" />
+      </marker>
+      <marker id="red" markerWidth="15" markerHeight="15" refX="0" refY="7.5" orient="auto">
+        <polygon points="0 0, 15 7.5, 0 15" style="fill: red" />
       </marker>
     </defs>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
+    </svg>
+    <div id="root" style="height: 100%; display: flex; flex-direction: column"></div>
   </body>
 </html>

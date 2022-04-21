@@ -131,12 +131,14 @@ export class Instance {
         this.stack = [];
         this.inputWord = [];
         this.currentState = automata.initialId;
+        this.numComputations = 0;
     }
     setInputWord(i) {
         this.stack = [];
         this.inputWord = i;
         this.inputWord.push("$");
         this.currentState = this.automata.initialId;
+        this.numComputations = 0;
         return this;
     }
     
@@ -163,6 +165,7 @@ export class Instance {
     }
 
     doNextStep(type) { // 0: transition, 1: state
+        this.numComputations++;
         if (this.inputWord.length === 0)  return { end: true, tran: null, state: null }; // return end
         
         let state = this.automata.states.find(x => x.id === this.currentState);
@@ -177,6 +180,8 @@ export class Instance {
         this.stack = this.stack.flat();
         
         this.currentState = tran.nextId;
+        if (this.numComputations > 1000000) return {end: true, tran: null, state: null}; 
+
         return { end: false, tran: null, state: tran.nextId }; // return state id
     }
 
@@ -191,7 +196,9 @@ export class Instance {
         this.currentState = this.automata.initialId;
         while (true) {
             let out = this.stepAutomata();
+            this.numComputations++;
             if (out) break;
+            if (this.numComputations > 1000000) break; 
         }
         if ((this.inputWord.length === 0 || (this.inputWord.length === 1 && this.inputWord[0] === "$")) && this.stack.length === 0 && this.automata.states.find(x => x.id === this.currentState).accepting) {
             return true;
