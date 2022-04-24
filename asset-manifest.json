@@ -1,8 +1,8 @@
 {
   "files": {
-    "main.js": "/pda-visualiser/static/js/main.dc46b99b.js",
-    "index.html": "/pda-visualiser/index.html",
-    "main.dc46b99b.js.map": "/pda-visualiser/static/js/main.dc46b99b.js.map"
+    "main.js": "/PDA-Visualiser/static/js/main.dc46b99b.js",
+    "index.html": "/PDA-Visualiser/index.html",
+    "main.dc46b99b.js.map": "/PDA-Visualiser/static/js/main.dc46b99b.js.map"
   },
   "entrypoints": [
     "static/js/main.dc46b99b.js"
