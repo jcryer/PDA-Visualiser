@@ -140,6 +140,7 @@ ref={newRef => setLineRef(newRef)} id={id} style={{stroke: data.selected ? "red"
         <text key={`text-${i}`} x={topLeftX} y={topLeftY} style={{ fontFamily: 'Roboto Mono', fontSize: '12px', fill: i === data.selectedTran ? "red" : "#000", zIndex: 10, pointerEvents: "none" }}>{x.input === "" ? "ε" : x.input}, {x.stack === "" ? "ε" : x.stack}→{x.outStack === "" ? "ε" : x.outStack}</text>
         <foreignObject key={`fo-${i}`} xmlns="http://www.w3.org/2000/svg" x={topLeftX} y={topLeftY - 13} width={20 + maxWidth} height="20">
           <div 
+            key={`d-${i}`}
             style={{position: "absolute", width: 20 + maxWidth, height: "32px", display: "flex", flexDirection: "row", justifyContent: "flex-end" }}
             onMouseEnter={(e) => setButtonsVisible(true) }
             onMouseLeave={(e) => setButtonsVisible(false) }>

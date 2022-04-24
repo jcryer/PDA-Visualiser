@@ -145,15 +145,20 @@ export class Instance {
     stepAutomata() {
         let state;
 
+
+
+        state = this.automata.states.find(x => x.id === this.currentState);
+
+        let tran = state.transitions.find(x => x.isValid(this.inputWord.length > 0 ? this.inputWord[0] : "", this.stack[0]));
+        if (tran === undefined) return true;
+/*
         if (this.inputWord.length === 0) {
             return true;
         }
 
-        state = this.automata.states.find(x => x.id === this.currentState);
-
-        let tran = state.transitions.find(x => x.isValid(this.inputWord[0], this.stack[0]));
-        if (tran === undefined) return true;
-
+        if (this.inputWord.length === 0)
+        if ((this.inputWord.length === 1 && this.inputWord[0] === "$") && tran.input !== "$") return true;
+*/
         if (tran.input !== undefined && tran.input !== "") this.inputWord.splice(0, 1);
         if (tran.requiredStack !== undefined && tran.requiredStack !== "") this.stack.splice(0, 1);
         if (tran.replacedStack !== undefined && tran.replacedStack !== "") this.stack.unshift(tran.replacedStack.split(""));
@@ -166,11 +171,12 @@ export class Instance {
 
     doNextStep(type) { // 0: transition, 1: state
         this.numComputations++;
-        if (this.inputWord.length === 0)  return { end: true, tran: null, state: null }; // return end
+        //if (this.inputWord.length === 0 || (this.inputWord.length === 1 && this.inputWord[0] === "$"))  return { end: true, tran: null, state: null }; // return end
         
         let state = this.automata.states.find(x => x.id === this.currentState);
         let tran = state.transitions.find(x => x.isValid(this.inputWord[0], this.stack[0]));
         if (tran === undefined) return { end: true, tran: null, state: null }; // return end
+        if ((this.inputWord.length === 1 && this.inputWord[0] === "$") && tran.input !== "$") return {end: true, tran: null, state: null };
         if (type === 0)  return { end: false, tran: tran, state: null }; // return transition id??
 
         if (tran.input !== undefined && tran.input !== "") this.inputWord.splice(0, 1);
