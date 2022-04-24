@@ -145,6 +145,9 @@ export class Instance {
     stepAutomata() {
         let state;
 
+        if (this.inputWord.length === 0) {
+            return true;
+        }
 
 
         state = this.automata.states.find(x => x.id === this.currentState);
@@ -152,9 +155,7 @@ export class Instance {
         let tran = state.transitions.find(x => x.isValid(this.inputWord.length > 0 ? this.inputWord[0] : "", this.stack[0]));
         if (tran === undefined) return true;
 /*
-        if (this.inputWord.length === 0) {
-            return true;
-        }
+
 
         if (this.inputWord.length === 0)
         if ((this.inputWord.length === 1 && this.inputWord[0] === "$") && tran.input !== "$") return true;
@@ -171,7 +172,7 @@ export class Instance {
 
     doNextStep(type) { // 0: transition, 1: state
         this.numComputations++;
-        //if (this.inputWord.length === 0 || (this.inputWord.length === 1 && this.inputWord[0] === "$"))  return { end: true, tran: null, state: null }; // return end
+        if (this.inputWord.length === 0)  return { end: true, tran: null, state: null }; // return end
         
         let state = this.automata.states.find(x => x.id === this.currentState);
         let tran = state.transitions.find(x => x.isValid(this.inputWord[0], this.stack[0]));
