@@ -230,7 +230,13 @@ function Graph() {
   const removeNode = () => {
     setElements((els) => {
       if (selectedNode.length === 1 && selectedNode[0].id !== "0") {
-        return els.filter((x) => x.id !== selectedNode[0].id);
+        const noNodes = els.filter((x) => x.id !== selectedNode[0].id);
+        const transitions = els.filter((x) => x.id.includes("-")).filter((x) => {
+          const ids = x.id.split("-");
+          if (ids[0] === selectedNode[0].id || ids[1] === selectedNode[0].id) return true;
+          return false;
+        });
+        return noNodes.filter(x => transitions.indexOf(x) === -1);
       }
       return els;
     });

@@ -47,7 +47,18 @@ export default function HelpModal({ open, setOpen }) {
             If it is not needed, the DPDA will still be allowed to terminate without this character being passed on the tape.
           </DialogContentText>
           <br />
-
+          <DialogContentText>
+            Double clicking on the <b>outer section</b> of a state toggles whether that state is an accepting state. <br />
+            Click and drag from the centre of one state to the centre of another in order to create a new transition between those two states.<br />
+            To setup a new transition from a state to itself, simply click in the centre of a state. <br />
+            To delete a transition, hover over it and click on the 'x' button next to it.<br />
+            To delete a node, click on it. It should be highlighted purple. Then, press the 'delete' keyboard key. You cannot delete the start node.  
+          </DialogContentText>
+          <br />
+          <DialogContentText>
+            When stepping through a DPDA, the bottom right will visualise the stack. 
+          </DialogContentText>
+          <br />
           <Typography variant="h6" component="div">
             Examples
           </Typography>
