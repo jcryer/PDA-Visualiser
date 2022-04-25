@@ -72,7 +72,6 @@ export default function HelpModal({ open, setOpen }) {
             • A DPDA that accepts any word followed by a 'c' character and then the reverse of the initial word.
           </DialogContentText>
           <br />
-
           <Typography variant="h6" component="div">
             About me
           </Typography>
