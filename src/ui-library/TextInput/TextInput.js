@@ -16,7 +16,13 @@ const useStyles = createUseStyles({
     marginRight: 10
   }),
 });
-function TextInput({ placeholder, onChange, text, width, fontSize }) {
+function TextInput({ placeholder, onChange, text, width, fontSize, submit }) {
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      submit();
+    }
+  }
+
   const classes = useStyles({ width, fontSize });
   return (
     <input
@@ -25,6 +31,7 @@ function TextInput({ placeholder, onChange, text, width, fontSize }) {
       value={text}
       onChange={onChange}
       placeholder={placeholder}
+      onKeyDown={handleKeyDown}
     />
   );
 }

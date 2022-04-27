@@ -18,7 +18,7 @@ export default function FormDialog({ open, setOpen, addTransition, params }) {
   };
 
   const handleSubmit = () => {
-    addTransition(params, input, inStack, outStack);
+    addTransition(params, input, inStack, outStack /*outStack.split("").reverse().join("")*/);
     setOpen(false);
     setInput("");
     setInStack("");

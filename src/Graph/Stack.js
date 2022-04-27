@@ -1,4 +1,6 @@
-import React from "react";
+import React, {useState, useEffect, useRef} from 'react'
+import { TitleText } from "../ui-library";
+
 import { createUseStyles } from "react-jss";
 import clsx from "clsx";
 
@@ -8,12 +10,10 @@ const useStyles = createUseStyles({
     flexDirection: "column",
     justifyContent: "flex-end",
     alignItems: "center",
-    overflowX: "scroll",
     width: 200,
-    margin: "10 10 0 10",
   },
   scroll: {
-    overflowY: "scroll"
+    overflowY: "scroll",
   },
   all: {
     height: 32,
@@ -49,15 +49,30 @@ function StackItem ({ bottom, top, only, item }) {
 function Stack({ list }) {
   const classes = useStyles();
 
-    if (list.length < 2) return <div className={classes.root}> <StackItem top/><StackItem bottom  item={list[0]}/></div>; 
+  const [height, setHeight] = useState(0);
+  const ref = useRef(null);
+  useEffect(() => {
+    if (ref.current)
+    setHeight(ref.current.clientHeight)
+  });
 
-    return (
-      <div className={classes.root}>
-        <div className={classes.scroll}>
-          {list.map((x, i) => <StackItem bottom={i === list.length - 1} top={i === 0} item={x} />)}
-        </div>
-      </div>);
-    
+
+  if (list.length < 2) return (
+    <div className={classes.root}> 
+      <TitleText style={{display: "flex", flexGrow: 1, flexShrink: 1, flexBasis: 0}}>Stack</TitleText>
+      <div className={classes.scroll} style={{display: "flex", flexGrow: 9, flexShrink: 9, flexBasis: 0, flexDirection: "column"}}>
+        <StackItem top/><StackItem bottom item={list[0]}/>
+      </div>
+    </div>); 
+
+  return (
+    <div className={classes.root}>
+      <TitleText style={{display: "flex", flexGrow: 1, flexShrink: 1, flexBasis: 0}}>Stack</TitleText>
+      <div className={classes.scroll} style={{display: "flex", flexGrow: 9, flexShrink: 9, flexBasis: 0, flexDirection: "column"}}>
+        {list.map((x, i) => <StackItem bottom={i === list.length - 1} top={i === 0} item={x} />)}
+      </div>
+    </div>);
+  
   };
 
 export default Stack;

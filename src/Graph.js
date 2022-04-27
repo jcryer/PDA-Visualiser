@@ -1,5 +1,5 @@
 import { State, Automata, Transition, Instance } from "./Logic/main";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from 'react'
 import ReactFlow, {
   ConnectionLineType,
   Background,
@@ -7,12 +7,14 @@ import ReactFlow, {
   Controls,
   useZoomPanHelper
 } from "react-flow-renderer";
-import { MainNode, MainEdge, NewEdgeForm, Stack, HelpModal } from "./Graph/";
+import { MainNode, MainEdge, NewEdgeForm, Stack, HelpModal, ExampleModal } from "./Graph/";
 import { NewButton, TextInput, TitleText } from "./ui-library";
 import { saveAs } from "file-saver";
 import ReactFileReader from "react-file-reader";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import Button from "@mui/material/Button";
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import { IconButton } from '@mui/material';
 
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
@@ -42,6 +44,7 @@ function getNodeIndex(elements) {
 }
 
 function Graph() {
+
   const { fitView } = useZoomPanHelper();
 
   const [elements, setElements] = useState([]);
@@ -61,9 +64,11 @@ function Graph() {
 
   const [example, setExample] = useState("");
 
-  const handleExample = async (event) => {
-    setExample(event.target.value);
-    switch (event.target.value) {
+  const [reactInstance, setReactInstance] = useState(null);
+
+  const handleExample = async (val) => {
+    setExample(val);
+    switch (val) {
       case 1:
         setElements(loadAnbn());
         break;
@@ -75,11 +80,11 @@ function Graph() {
         break;
     }
     await new Promise(r => setTimeout(r, 50));
-    setElements(els => [...els]);
+    setElements(els => 
+      els.map(el => ({...el, data: {...el.data, delete: deleteTransition } }))
+    );
     fitView({ padding: 0.8 });
   };
-
-
 
   useEffect(() => {
     buildAutomata();
@@ -117,7 +122,8 @@ function Graph() {
     return true;
   };
 
-  const deleteTransition = (id, iter) =>
+  const deleteTransition = (id, iter) => {
+    setExample("");
     setElements((els) => {
       const el = els.find((x) => x.id === id);
       if (el.data.transitions.length === 1)
@@ -134,8 +140,10 @@ function Graph() {
         },
       ];
     });
+  }
 
-  const addTransition = (params, input, stack, outStack) =>
+  const addTransition = (params, input, stack, outStack) => {
+    setExample("");
     setElements((els) => {
       const el = els.find((x) => x.id == `${params.source}-${params.target}`);
 
@@ -202,10 +210,21 @@ function Graph() {
         },
       ];
     });
+  };
 
   const addNode = () => {
+    setExample("");
     setElements((els) => {
       const newId = getNodeIndex(els);
+      let x = 100;
+      let y = 50;
+      if (reactInstance) {
+        const pos = reactInstance.toObject();
+        console.log(pos);
+        console.log(pos.position);
+        x = (-pos.position[0] / pos.zoom) + 200;
+        y = (-pos.position[1] / pos.zoom) + 100;
+      }
       return [
         ...els,
         {
@@ -219,8 +238,8 @@ function Graph() {
             start: newId === 0 ? true : false,
           },
           position: {
-            x: 100,
-            y: 50,
+            x: x,
+            y: y,
           },
         },
       ];
@@ -228,6 +247,7 @@ function Graph() {
   };
 
   const removeNode = () => {
+    setExample("");
     setElements((els) => {
       if (selectedNode.length === 1 && selectedNode[0].id !== "0") {
         const noNodes = els.filter((x) => x.id !== selectedNode[0].id);
@@ -412,13 +432,17 @@ function Graph() {
     saveAs(blob, "automata.json");
   };
 
-  const handleFiles = (files) => {
+  const handleFiles = async (files) => {
     setElements(JSON.parse(atob(files.base64.slice(29))));
+    await new Promise(r => setTimeout(r, 50));
+    setElements(els => [...els]);
+    fitView({ padding: 0.8 });
   };
 
   const onLoad = (i) => {
     addNode();
     i.fitView();
+    setReactInstance(i);
     return;
   };
 
@@ -459,6 +483,7 @@ function Graph() {
 
   const [open, setOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [exampleOpen, setExampleOpen] = useState(false);
   const [params, setParams] = useState(null);
 
   return (
@@ -471,6 +496,7 @@ function Graph() {
           params={params}
         />
         <HelpModal open={helpOpen} setOpen={setHelpOpen} />
+        <ExampleModal open={exampleOpen} setOpen={setExampleOpen} />
         <div
           style={{
             display: "flex",
@@ -479,7 +505,9 @@ function Graph() {
           <div
             style={{
               flexGrow: 1,
-              width: 0,
+              width: 150,
+              alignItems: "center",
+              display: "flex"
             }}
           >
             <Button
@@ -512,9 +540,15 @@ function Graph() {
             style={{
               flexGrow: 1,
               display: "flex",
-              justifyContent: "flex-end"
+              justifyContent: "flex-end",
+              alignItems: "center",
+              width: 150
+
             }}
           >
+            <IconButton onClick={(e) => setExampleOpen(true)} aria-label="delete" style={{height: 40}}>
+              <InfoOutlinedIcon />
+            </IconButton>
              <FormControl style={{margin: 10, width: 150}}>
               <InputLabel id="demo-simple-select-label">Examples</InputLabel>
               <Select
@@ -522,8 +556,8 @@ function Graph() {
                 id="demo-simple-select"
                 value={example}
                 label="Examples"
-                onChange={handleExample}
-              >
+                onChange={(e) => handleExample(e.target.value)}
+                >
                 <MenuItem value={1}>aⁿbⁿ</MenuItem>
                 <MenuItem value={2}>|a| = |b|</MenuItem>
                 <MenuItem value={3}>wcw<sup>R</sup></MenuItem>
@@ -552,6 +586,7 @@ function Graph() {
                 }}
                 text={inputWord}
                 width={400}
+                submit={() => walkAutomata()}
               />
               <TitleText> {success} </TitleText>
             </div>
@@ -573,7 +608,7 @@ function Graph() {
             justifyContent: "center",
           }}
         >
-          <NewButton onClick={addNode} text={"Add Node"} />
+          <NewButton onClick={addNode} text={"Add State"} />
           <NewButton
             onClick={stepAutomata}
             text={inRun === 1 ? "Step" : "Start Step"}
@@ -649,7 +684,7 @@ function Graph() {
           />
           <Controls />
         </ReactFlow>
-        <Stack list={instance.stack} />
+        <Stack list={instance.stack}/>
       </div>
       <div
         style={{

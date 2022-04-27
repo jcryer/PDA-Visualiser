@@ -18,8 +18,22 @@ export default function HelpModal({ open, setOpen }) {
     <div>
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="lg">
         <DialogContent>
+        <Typography variant="h6" component="div">
+            How to use
+          </Typography>
+          <DialogContentText>
+            Double clicking on the <b>outer section</b> of a state toggles whether that state is an accepting state. <br />
+            Click and drag from the centre of one state to the centre of another in order to create a new transition between those two states.<br />
+            To setup a new transition from a state to itself, simply click in the centre of a state. <br />
+            To delete a transition, hover over it and click on the 'x' button next to it.<br />
+            To delete a node, click on it. It should be highlighted purple. Then, press the 'backspace' keyboard key. You cannot delete the start node.  
+          </DialogContentText>
+          <DialogContentText>
+            When stepping through a DPDA, the bottom right will visualise the stack. 
+          </DialogContentText>
+          <br />
           <Typography variant="h6" component="div">
-            About the tool
+            About DPDAs
           </Typography>
           <DialogContentText>
             This tool allows you to build Deterministic Pushdown Automata (DPDA) and test different words against them.
@@ -36,6 +50,9 @@ export default function HelpModal({ open, setOpen }) {
             Otherwise, the word will be rejected.
           </DialogContentText>
           <br />
+          <Typography variant="h6" component="div">
+            About the tool
+          </Typography>
           <DialogContentText>
             There is one universally reserved character: 'ϵ'. This will be stripped out of any entered word. 'ϵ' is used to represent the empty word. 
             If a field is left blank on a transition, the DPDA will not consult the input or the stack, depending on which field is left blank.
@@ -47,31 +64,7 @@ export default function HelpModal({ open, setOpen }) {
             If it is not needed, the DPDA will still be allowed to terminate without this character being passed on the tape.
           </DialogContentText>
           <br />
-          <DialogContentText>
-            Double clicking on the <b>outer section</b> of a state toggles whether that state is an accepting state. <br />
-            Click and drag from the centre of one state to the centre of another in order to create a new transition between those two states.<br />
-            To setup a new transition from a state to itself, simply click in the centre of a state. <br />
-            To delete a transition, hover over it and click on the 'x' button next to it.<br />
-            To delete a node, click on it. It should be highlighted purple. Then, press the 'delete' keyboard key. You cannot delete the start node.  
-          </DialogContentText>
-          <br />
-          <DialogContentText>
-            When stepping through a DPDA, the bottom right will visualise the stack. 
-          </DialogContentText>
-          <br />
-          <Typography variant="h6" component="div">
-            Examples
-          </Typography>
-          <DialogContentText>
-            Three examples have been included with this tool: 
-            <br />
-            • A DPDA that checks there are a number of a's followed by the same number of b's.
-            <br />
-            • A DPDA that ensures there is an equal number of  a's and b's.
-            <br />
-            • A DPDA that accepts any word followed by a 'c' character and then the reverse of the initial word.
-          </DialogContentText>
-          <br />
+          
           <Typography variant="h6" component="div">
             About me
           </Typography>

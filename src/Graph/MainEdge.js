@@ -130,7 +130,7 @@ ref={newRef => setLineRef(newRef)} id={id} style={{stroke: data.selected ? "red"
     
     <rect 
 
-    x={midX - 25} y={midY - ((13 * numLines) / 2)} width={maxWidth} height={(13 * numLines)} style={{fill: "#fff"}} />
+    x={midX - 25} y={midY - ((13 * numLines) / 2) - 2} width={maxWidth + 5} height={(15 * numLines)} style={{fill: "#fff"}} />
 
     {data.transitions.map((x, i) => {
       const topLeftX = midX - 25;
@@ -138,7 +138,7 @@ ref={newRef => setLineRef(newRef)} id={id} style={{stroke: data.selected ? "red"
       return (<>
       
         <text key={`text-${i}`} x={topLeftX} y={topLeftY} style={{ fontFamily: 'Roboto Mono', fontSize: '12px', fill: i === data.selectedTran ? "red" : "#000", zIndex: 10, pointerEvents: "none" }}>{x.input === "" ? "ε" : x.input}, {x.stack === "" ? "ε" : x.stack}→{x.outStack === "" ? "ε" : x.outStack}</text>
-        <foreignObject key={`fo-${i}`} xmlns="http://www.w3.org/2000/svg" x={topLeftX} y={topLeftY - 13} width={20 + maxWidth} height="20">
+        <foreignObject key={`fo-${i}`} xmlns="http://www.w3.org/2000/svg" x={topLeftX + 2} y={topLeftY - 15} width={20 + maxWidth} height="20">
           <div 
             key={`d-${i}`}
             style={{position: "absolute", width: 20 + maxWidth, height: "32px", display: "flex", flexDirection: "row", justifyContent: "flex-end" }}
