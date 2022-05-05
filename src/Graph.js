@@ -7,7 +7,7 @@ import ReactFlow, {
   Controls,
   useZoomPanHelper
 } from "react-flow-renderer";
-import { MainNode, MainEdge, NewEdgeForm, Stack, HelpModal, ExampleModal } from "./Graph/";
+import { MainNode, MainEdge, NewEdgeForm, Stack, HelpModal, ExampleModal, ConfirmModal } from "./Graph/";
 import { NewButton, TextInput, TitleText } from "./ui-library";
 import { saveAs } from "file-saver";
 import ReactFileReader from "react-file-reader";
@@ -414,6 +414,10 @@ function Graph() {
     return;
   };
 
+  const clearScreen = () => {
+    setConfirmOpen(true);
+  }
+
   const resetAll = () => {
     instance.setInputWord(checkWord(inputWord.split("")));
     setSuccess("");
@@ -484,6 +488,10 @@ function Graph() {
   const [open, setOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [exampleOpen, setExampleOpen] = useState(false);
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirm, setConfirm] = useState(false);
+
   const [params, setParams] = useState(null);
 
   return (
@@ -497,6 +505,7 @@ function Graph() {
         />
         <HelpModal open={helpOpen} setOpen={setHelpOpen} />
         <ExampleModal open={exampleOpen} setOpen={setExampleOpen} />
+        <ConfirmModal open={confirmOpen} setOpen={setConfirmOpen} reset={resetAll} />
         <div
           style={{
             display: "flex",
@@ -622,7 +631,7 @@ function Graph() {
             justifyContent: "center",
           }}
         >
-          <NewButton onClick={resetAll} text={"Clear Screen"} />
+          <NewButton onClick={clearScreen} text={"Clear Screen"} />
           <div
             style={{
               display: "inline-block",

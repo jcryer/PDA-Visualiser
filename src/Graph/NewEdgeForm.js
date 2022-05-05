@@ -75,6 +75,7 @@ export default function FormDialog({ open, setOpen, addTransition, params }) {
             variant="standard"
             value={outStack}
             onChange={(e) => setOutStack(checkWord(e.target.value))}
+            onKeyDown={(e) => e.key === 'Enter' ? handleSubmit() : null}
           />
         </DialogContent>
         <DialogActions>
